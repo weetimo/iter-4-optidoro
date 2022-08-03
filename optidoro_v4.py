@@ -6,7 +6,8 @@ import datetime
 import numpy as np
 
 if 'csv_filepath' not in st.session_state:
-    st.session_state['csv_filepath'] = "/Users/timothywee/Documents/SUTD Term 5/HCI and AI/Week 10/Smart Pomodoro/HCI-and-AI-smart-pomodoro/optidoro-production copy/actual_HCI_data.csv"
+    #st.session_state['csv_filepath'] = "/Users/timothywee/Documents/SUTD Term 5/HCI and AI/Week 10/Smart Pomodoro/HCI-and-AI-smart-pomodoro/optidoro-production copy/actual_HCI_data.csv"
+    st.session_state['csv_filepath'] = "actual_HCI_data.csv"
 
 #CHANGE THIS TO LOCAL FILEPATH
 local_CSV_filepath = st.session_state['csv_filepath']
