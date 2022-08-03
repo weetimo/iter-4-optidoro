@@ -184,7 +184,7 @@ else:
 
 st.progress(progress_bar)
 st.caption("Learning Faster & Greater")
-st.write(st.session_state)
+#st.write(st.session_state)
 
 #st.line_chart(df)
 time_minutes = 25
