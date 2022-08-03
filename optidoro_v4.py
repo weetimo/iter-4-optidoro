@@ -347,3 +347,4 @@ st.metric("Minutes today", st.session_state['minutes_today'])
 
 if st.session_state['minutes_today'] >= 100:
     st.write("You have completed the study! Congratulations! Submit your scores, and enjoy the remainder of your break!")
+    st.balloons()
