@@ -54,9 +54,9 @@ if 'extend_clicked' not in st.session_state:
 
 def extend_callback():
     st.session_state['countdown_time'] += 1500
-    # st.session_state.run_finished = False
-    #st.session_state.cancel_clicked = False
-    #st.session_state.begin_clicked = True 
+    st.session_state.run_finished = False
+    st.session_state.cancel_clicked = False
+    st.session_state.begin_clicked = True 
     st.session_state['extend'] = True
     st.session_state['extend_counter'] += 1
     st.session_state['minutes_today'] += 25 #check this
@@ -229,8 +229,8 @@ if st.button("Begin work cycle", on_click=begin_callback,disabled=st.session_sta
         st.write("Work cycle in progress")
     # st.metric("Upcoming break time", st.session_state['break_minutes'])
     
-    if st.session_state['countdown_time'] == 0:
-        st.session_state['countdown_time'] = time_minutes * 60
+    # if st.session_state['countdown_time'] == 0: #idk what this is, check again
+    #     st.session_state['countdown_time'] = time_minutes * 60
     
     
 
@@ -347,4 +347,3 @@ st.metric("Minutes today", st.session_state['minutes_today'])
 
 if st.session_state['minutes_today'] >= 100:
     st.write("You have completed the study! Congratulations! Submit your scores, and enjoy the remainder of your break!")
-    st.experimental_rerun()
