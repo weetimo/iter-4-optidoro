@@ -2,16 +2,119 @@
 import streamlit as st
 
 import time
-# import pandas as pd
-# import datetime
+import pandas as pd
+from datetime import datetime
 # import numpy as np
 
-# if 'csv_filepath' not in st.session_state:
-#     #st.session_state['csv_filepath'] = "/Users/timothywee/Documents/SUTD Term 5/HCI and AI/Week 10/Smart Pomodoro/HCI-and-AI-smart-pomodoro/optidoro-production copy/actual_HCI_data.csv"
+from gspread_pandas import Spread,Client
+from google.oauth2 import service_account
+
+import random
+
+if 'user' not in st.session_state:
+    st.session_state['user'] = random.random()
+
+# Disable certificate verification
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# if 'scope' not in st.session_state:
+#     st.session_state['scope'] = []
+
+# if 'credentials' not in st.session_state:
+#     st.session_state['credentials'] = None
+
+# if 'spread' not in st.session_state:
+#     st.session_state['spread'] = None
+
+# if 'sh' not in st.session_state:
+#     st.session_state['sh'] = None
+
+# @st.cache()
+# def init_connection():
+
+#     st.session_state['scope'] = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+
+
+#     # The above code is creating a scope for the Google API.
+
+#     st.session_state['credentials'] = service_account.Credentials.from_service_account_info(
+#                     st.secrets["gcp_service_account"], scopes = st.session_state['scope'])
+#     client = Client(scope=st.session_state['scope'],creds=st.session_state['credentials'])
+#     spreadsheetname = "HCI and AI"
+#     st.session_state['spread'] = Spread(spreadsheetname,client = client)
+
+#     st.write(st.session_state['spread'].url)
+
+#     st.session_state['sh'] = client.open(spreadsheetname)
+#     global worksheet_list
+#     worksheet_list = sh.worksheets()
+#     return
+
+# Create a Google Authentication connection object
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+
+credentials = service_account.Credentials.from_service_account_info(
+                st.secrets["gcp_service_account"], scopes = scope)
+client = Client(scope=scope,creds=credentials)
+spreadsheetname = "HCI and AI"
+spread = Spread(spreadsheetname,client = client)
+
+# Check the connection
+# st.write(spread.url)
+
+sh = client.open(spreadsheetname)
+worksheet_list = sh.worksheets()
+
+# Spreadsheet (database) Functions 
+@st.cache()
+# Get our worksheet names
+def worksheet_names():
+    sheet_names = []   
+    for sheet in worksheet_list:
+        sheet_names.append(sheet.title)  
+    return sheet_names
+
+# Get the sheet as dataframe
+def load_the_spreadsheet(spreadsheetname):
+    worksheet = sh.worksheet(spreadsheetname)
+    df = pd.DataFrame(worksheet.get_all_records())
+    return df
+
+#get a list of all keys in st.session_state
+
+
+# Update to Sheet
+def update_the_spreadsheet(spreadsheetname,dataframe):
+    col = ['Timestamp','User', 'session_type', 'Effort', 'Fatigue', 'minutes_today',
+    'cancel_clicked', 'break_minutes', 'extend_counter', 'countdown_time', 'form_on',
+    'extend_clicked', 'cycle_counter', 'extend', 'time_minutes', 'begin_clicked',
+    'daily_focus_score', 'daily_effort_score', 'dev_mode'
+    
+    
+    ]
+    spread.df_to_sheet(dataframe[col],sheet = spreadsheetname,index = False)
+    st.sidebar.info('Updated to GoogleSheet')
+
+from gsheetsdb import connect
+gsheet_url = "https://docs.google.com/spreadsheets/d/19xhszrZtww1Z-x3WeOSm2zW9D8TqqIAHWNzH8En9IY4/edit?usp=sharing"
+
+@st.cache()
+def begin_connection():
+    global conn
+    conn = connect()
+    return
+
+begin_connection()
+
+
+if 'csv_filepath' not in st.session_state:
+    st.session_state['csv_filepath'] = "/Users/timothywee/Documents/SUTD Term 5/HCI and AI/Week 10/Smart Pomodoro/HCI-and-AI-smart-pomodoro/optidoro-production copy/actual_HCI_data.csv"
 #     st.session_state['csv_filepath'] = "actual_HCI_data.csv"
 
 #CHANGE THIS TO LOCAL FILEPATH
-# local_CSV_filepath = st.session_state['csv_filepath']
+local_CSV_filepath = st.session_state['csv_filepath']
 
 if 'disable_begin' not in st.session_state:
     st.session_state['disable_begin'] = False
@@ -24,6 +127,9 @@ if 'begin_clicked' not in st.session_state:
 
 if 'extend' not in st.session_state:
     st.session_state['extend'] = False
+
+if 'session_type' not in st.session_state:
+    st.session_state['session_type'] = 'Modified Pomodoro'
 
 # st.write(st.session_state)
 
@@ -80,13 +186,13 @@ if 'form_on' not in st.session_state:
     st.session_state.form_on = False
 
 if 'dev_mode' not in st.session_state:
-    st.session_state.dev_mode = False
+    st.session_state.dev_mode = True
 
 if 'cycle_counter' not in st.session_state: 
     st.session_state['cycle_counter'] = 0
 
-if 'break_counter' not in st.session_state: 
-    st.session_state['break_counter'] = 0
+# if 'break_counter' not in st.session_state: 
+#     st.session_state['break_counter'] = 0
 
 # if 'subject_array' not in st.session_state:
 #     st.session_state['subject_array'] = subject_array = ["Machine Learning", "HCI and AI", "Service Design Studio", "HASS"]
@@ -94,11 +200,11 @@ if 'break_counter' not in st.session_state:
 if 'multiplier' not in st.session_state:
     st.session_state['multiplier'] = 1 #change this to 1 in deployment
 
-if 'suggested_cycle_value' not in st.session_state:
-    st.session_state['suggested_cycle_value'] = 25
+# if 'suggested_cycle_value' not in st.session_state:
+#     st.session_state['suggested_cycle_value'] = 25
 
-if 'suggested_break_value' not in st.session_state:
-    st.session_state['suggested_break_value'] = 5
+# if 'suggested_break_value' not in st.session_state:
+#     st.session_state['suggested_break_value'] = 5
 
 if 'daily_focus_score' not in st.session_state:
     st.session_state['daily_focus_score'] = 0
@@ -114,12 +220,22 @@ if 'extend_counter' not in st.session_state:
 
 # st.write(st.session_state)
 
-# df = pd.read_csv(local_CSV_filepath) 
+def get_keys():
+    keys = []
+    for key in st.session_state:
+        keys.append(key)
+    return keys
+
+# st.write(get_keys())
+
+df = pd.read_csv(local_CSV_filepath) 
 
 # graph_df = df[['subject', 'time_minutes']]
 # # graph_df['time_now'] = pd.to_datetime(graph_df['time_now'])
 
 # #st.line_chart(graph_df)
+
+# st.write(st.session_state)
 
 def combined_count_down(ts):
     
@@ -286,8 +402,33 @@ if st.session_state.form_on: #triggers when timer is up
             st.session_state['daily_focus_score'] += focus_score
             st.session_state['daily_effort_score'] += effort_score
             st.session_state.form_on = False
+            now = datetime.now()
+            opt = {'Timestamp': now, 'User': st.session_state['user'], 'session_type': st.session_state['session_type'], 
+                    'Effort': effort_score, 'Fatigue': focus_score, 'minutes_today': st.session_state['minutes_today'], 
+                    'cancel_clicked': st.session_state['cancel_clicked'], 'break_minutes': st.session_state['break_minutes'],
+                    'extend_counter': st.session_state['extend_counter'], 'countdown_time': st.session_state['countdown_time'],
+                    'form_on': st.session_state['form_on'], 'extend_clicked': st.session_state['extend_clicked'],'cycle_counter': st.session_state['cycle_counter'],
+                    'extend': st.session_state['extend'], 'time_minutes': st.session_state['time_minutes'], 
+                    'begin_clicked': st.session_state['begin_clicked'], 'daily_focus_score': st.session_state['daily_focus_score'], 'daily_effort_score': st.session_state['daily_effort_score'],
+                    'dev_mode': st.session_state['dev_mode']
+
+
+                    }
+            opt_df = pd.DataFrame(opt, index=[0])
+            df = load_the_spreadsheet('data')
+            new_df = df.append(opt_df, ignore_index=True)
+            update_the_spreadsheet('data', new_df)
             # df.loc[len(df)] = [str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")), subject, time_minutes, effort_score, focus_score]
             
+            #private gsheets implementation
+            # now = datetime.now()
+            # opt = {'Timestamp': [now], 'Effort': [effort_score], 'Focus': [focus_score]}
+            # opt_df = pd.DataFrame(opt)
+            # df = load_the_spreadsheet('HCI and AI')
+            # new_df = df.append(opt_df, ignore_index=True)
+            # update_the_spreadsheet('HCI and AI', new_df)
+
+
             # df.to_csv(local_CSV_filepath, index=False) 
             st.session_state.form_on = False
             st.success('Your effort score and focus score have been recorded. Please wait while we start your break.')
@@ -347,18 +488,20 @@ st.metric("Minutes today", st.session_state['minutes_today'])
 # if st.session_state.dev_mode == False:
 #     st.session_state['multiplier'] = 1
 
-st.session_state.dev_mode = st.checkbox('dev mode', value=st.session_state.dev_mode)
+dev_mode = st.checkbox('dev mode', value=st.session_state.dev_mode)
 st.caption("Makes timer run faster for testing purposes.")
 
-if st.session_state.dev_mode == True:
+if dev_mode == True:
+    st.session_state.dev_mode == True
     st.session_state['multiplier'] = 0.005
     #display CSV file
     # df = pd.read_csv(st.session_state.csv_filepath)
     # st.write(df)
     # st.write(st.experimental_user)    
 
-if st.session_state.dev_mode == False:
+if dev_mode == False:
     st.session_state['multiplier'] = 1
+    st.session_state.dev_mode == False
 
 if st.session_state['minutes_today'] >= 100:
     st.write("You have completed the study! Congratulations! Submit your scores, and enjoy the remainder of your break!")
