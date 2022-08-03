@@ -10,7 +10,7 @@
 # googleapis-common-protos==1.55.0
 gsheetsdb
 gspread
-gspread-pandas
+gspread_pandas
 google-api-core
 google-auth
 google-auth-httplib2
