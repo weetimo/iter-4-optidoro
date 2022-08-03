@@ -1,9 +1,9 @@
 import streamlit as st
 
 import time
-import pandas as pd
-import datetime
-import numpy as np
+# import pandas as pd
+# import datetime
+# import numpy as np
 
 # if 'csv_filepath' not in st.session_state:
 #     #st.session_state['csv_filepath'] = "/Users/timothywee/Documents/SUTD Term 5/HCI and AI/Week 10/Smart Pomodoro/HCI-and-AI-smart-pomodoro/optidoro-production copy/actual_HCI_data.csv"
@@ -246,7 +246,7 @@ if st.button("Begin work cycle", on_click=begin_callback,disabled=st.session_sta
             # # st.write(st.session_state['countdown_time'])
             # # st.write(st.session_state['break_minutes'])
             # combined_count_down(st.session_state['countdown_time'])
-
+        if st.button("End current cycle", help="By clicking this button, you will end your current work cycle. Time spent on this cycle will not be counted.", on_click=cancel_callback): #fix 
             pass
 
     
@@ -259,9 +259,9 @@ if st.button("Begin work cycle", on_click=begin_callback,disabled=st.session_sta
         combined_count_down(st.session_state['countdown_time'])
         
 
-# if st.session_state.cancel_clicked:
-#     st.session_state.cancel_clicked = False
-#     st.experimental_rerun()
+if st.session_state.cancel_clicked:
+    st.session_state.cancel_clicked = False
+    st.experimental_rerun()
 
 
 
@@ -345,6 +345,20 @@ st.metric("Minutes today", st.session_state['minutes_today'])
 # if st.session_state.dev_mode == False:
 #     st.session_state['multiplier'] = 1
 
+st.session_state.dev_mode = st.checkbox('dev mode', value=st.session_state.dev_mode)
+st.caption("Makes timer run faster for testing purposes.")
+
+if st.session_state.dev_mode == True:
+    st.session_state['multiplier'] = 0.001
+    #display CSV file
+    # df = pd.read_csv(st.session_state.csv_filepath)
+    # st.write(df)
+    # st.write(st.experimental_user)    
+
+if st.session_state.dev_mode == False:
+    st.session_state['multiplier'] = 1
+
 if st.session_state['minutes_today'] >= 100:
     st.write("You have completed the study! Congratulations! Submit your scores, and enjoy the remainder of your break!")
-    st.balloons()
+
+
