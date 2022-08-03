@@ -90,7 +90,7 @@ if 'break_counter' not in st.session_state:
 #     st.session_state['subject_array'] = subject_array = ["Machine Learning", "HCI and AI", "Service Design Studio", "HASS"]
 
 if 'multiplier' not in st.session_state:
-    st.session_state['multiplier'] = 0.002 #change this to 1 in deployment
+    st.session_state['multiplier'] = 1 #change this to 1 in deployment
 
 if 'suggested_cycle_value' not in st.session_state:
     st.session_state['suggested_cycle_value'] = 25
@@ -110,9 +110,9 @@ if 'extend_counter' not in st.session_state:
 # if 'autopilot_work' not in st.session_state:
 #     st.session_state['autopilot_work'] = False
 
-st.write(st.session_state)
+# st.write(st.session_state)
 
-# df = pd.read_csv(local_CSV_filepath) 
+df = pd.read_csv(local_CSV_filepath) 
 
 # graph_df = df[['subject', 'time_minutes']]
 # # graph_df['time_now'] = pd.to_datetime(graph_df['time_now'])
