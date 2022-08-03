@@ -247,7 +247,6 @@ if st.button("Begin work cycle", on_click=begin_callback,disabled=st.session_sta
             # # st.write(st.session_state['break_minutes'])
             # combined_count_down(st.session_state['countdown_time'])
 
-        if st.button("End current cycle", help="By clicking this button, you will end your current work cycle.", on_click=cancel_callback): #fix 
             pass
 
     
