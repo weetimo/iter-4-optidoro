@@ -1,3 +1,4 @@
+from tkinter.tix import Tree
 import streamlit as st
 
 import time
@@ -183,6 +184,7 @@ else:
 
 st.progress(progress_bar)
 st.caption("Learning Faster & Greater")
+st.write(st.session_state)
 
 #st.line_chart(df)
 time_minutes = 25
@@ -224,7 +226,7 @@ st.metric("Remaining break time", break_time_now)
 #     st.metric("Remaining study time", time_now)
 
 
-if st.button("Begin work cycle", on_click=begin_callback,disabled=st.session_state['disable_begin']) or st.session_state['extend']: #or st.session_state['autopilot_work']: #how to hide begin button when timer is running?
+if (st.button("Begin work cycle", on_click=begin_callback, disabled=st.session_state['disable_begin']) or st.session_state['extend']): #or st.session_state['autopilot_work']: #how to hide begin button when timer is running?
     if st.session_state['countdown_time'] != 0:
         #st.session_state['disable_begin'] = True
         st.write("Work cycle in progress")
@@ -263,9 +265,9 @@ if st.session_state.cancel_clicked:
     st.session_state.cancel_clicked = False
     st.experimental_rerun()
 
+if not st.session_state['disable_begin']:
+    st.session_state['disable_begin'] = False
 
-
-    
 
     
 
@@ -349,7 +351,7 @@ st.session_state.dev_mode = st.checkbox('dev mode', value=st.session_state.dev_m
 st.caption("Makes timer run faster for testing purposes.")
 
 if st.session_state.dev_mode == True:
-    st.session_state['multiplier'] = 0.001
+    st.session_state['multiplier'] = 0.005
     #display CSV file
     # df = pd.read_csv(st.session_state.csv_filepath)
     # st.write(df)
