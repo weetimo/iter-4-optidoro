@@ -97,7 +97,7 @@ def update_the_spreadsheet(spreadsheetname,dataframe):
     
     ]
     spread.df_to_sheet(dataframe[col],sheet = spreadsheetname,index = False)
-    st.sidebar.info('Updated to GoogleSheet')
+
 
 from gsheetsdb import connect
 gsheet_url = "https://docs.google.com/spreadsheets/d/19xhszrZtww1Z-x3WeOSm2zW9D8TqqIAHWNzH8En9IY4/edit?usp=sharing"
