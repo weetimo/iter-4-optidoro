@@ -188,7 +188,7 @@ if 'form_on' not in st.session_state:
     st.session_state.form_on = False
 
 if 'dev_mode' not in st.session_state:
-    st.session_state.dev_mode = True
+    st.session_state.dev_mode = False
 
 if 'cycle_counter' not in st.session_state: 
     st.session_state['cycle_counter'] = 0
@@ -440,6 +440,7 @@ if st.session_state.form_on: #triggers when timer is up
             # st.experimental_rerun()
 
             st.header("Break time!")
+            st.header("Click 'Begin work cycle' when you are ready to start the next cycle.")
             # ts = break_time_minutes * 60
             ts = st.session_state['break_minutes']
             
