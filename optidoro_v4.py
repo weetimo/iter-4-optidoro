@@ -53,6 +53,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 #     return
 
 # Create a Google Authentication connection object
+
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
 
@@ -115,7 +116,7 @@ if 'csv_filepath' not in st.session_state:
 #     st.session_state['csv_filepath'] = "actual_HCI_data.csv"
 
 #CHANGE THIS TO LOCAL FILEPATH
-local_CSV_filepath = st.session_state['csv_filepath']
+# local_CSV_filepath = st.session_state['csv_filepath']
 
 if 'disable_begin' not in st.session_state:
     st.session_state['disable_begin'] = False
@@ -229,7 +230,7 @@ def get_keys():
 
 # st.write(get_keys())
 
-df = pd.read_csv(local_CSV_filepath) 
+# df = pd.read_csv(local_CSV_filepath) 
 
 # graph_df = df[['subject', 'time_minutes']]
 # # graph_df['time_now'] = pd.to_datetime(graph_df['time_now'])
