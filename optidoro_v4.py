@@ -508,5 +508,8 @@ if dev_mode == False:
 
 if st.session_state['minutes_today'] >= 100:
     st.write("You have completed the study! Congratulations! Submit your scores, and enjoy the remainder of your break!")
+    st.write("Complete the post-study survey here to finish the session:")
+    link = '[Here](https://forms.gle/dY5VJVyzKEVWMV1w9)'
+    st.markdown(link, unsafe_allow_html=True)
 
 
