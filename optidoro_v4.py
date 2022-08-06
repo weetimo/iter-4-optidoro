@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 import time
@@ -9,7 +8,6 @@ from datetime import datetime
 from gspread_pandas import Spread,Client
 from google.oauth2 import service_account
 
-
 import random
 
 if 'user' not in st.session_state:
@@ -19,41 +17,7 @@ if 'user' not in st.session_state:
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# if 'scope' not in st.session_state:
-#     st.session_state['scope'] = []
-
-# if 'credentials' not in st.session_state:
-#     st.session_state['credentials'] = None
-
-# if 'spread' not in st.session_state:
-#     st.session_state['spread'] = None
-
-# if 'sh' not in st.session_state:
-#     st.session_state['sh'] = None
-
-# @st.cache()
-# def init_connection():
-
-#     st.session_state['scope'] = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-
-
-#     # The above code is creating a scope for the Google API.
-
-#     st.session_state['credentials'] = service_account.Credentials.from_service_account_info(
-#                     st.secrets["gcp_service_account"], scopes = st.session_state['scope'])
-#     client = Client(scope=st.session_state['scope'],creds=st.session_state['credentials'])
-#     spreadsheetname = "HCI and AI"
-#     st.session_state['spread'] = Spread(spreadsheetname,client = client)
-
-#     st.write(st.session_state['spread'].url)
-
-#     st.session_state['sh'] = client.open(spreadsheetname)
-#     global worksheet_list
-#     worksheet_list = sh.worksheets()
-#     return
-
 # Create a Google Authentication connection object
-
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
 
@@ -63,173 +27,8 @@ client = Client(scope=scope,creds=credentials)
 spreadsheetname = "HCI and AI"
 spread = Spread(spreadsheetname,client = client)
 
-# Check the connection
-# st.write(spread.url)
-
 sh = client.open(spreadsheetname)
 worksheet_list = sh.worksheets()
-
-### app.py file ###
-
-# Packages needed for all 10 features in the article
-
-import yaml
-import streamlit as st
-import contextlib
-import os
-import subprocess
-import sys
-from enum import Enum
-from io import BytesIO, StringIO
-from typing import Union
-import pandas as pd
-import datetime
-import pickle
-import base64
-from sys import platform
-import matplotlib.pyplot as plt
-import numpy as np
-import ast
-import glob
-import time
-import signal
-import psutil
-import re
-import json
-import shutil
-from pathlib import Path
-import socket
-
-# Import app configurations
-
-with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), configs_file)) as f:
-    configs = yaml.load(f.read())
-configs['APP_BASE_DIR'] = os.path.dirname(os.path.realpath(__file__))
-
-# Helper functions
-
-## Sessions state implementation, taken from here: 
-## https://discuss.streamlit.io/t/multi-page-app-with-session-state/3074/48
-
-class _SessionState:
-
-    def __init__(self, session, hash_funcs):
-        """Initialize SessionState instance."""
-        self.__dict__["_state"] = {
-            "data": {},
-            "hash": None,
-            "hasher": _CodeHasher(hash_funcs),
-            "is_rerun": False,
-            "session": session,
-        }
-
-    def __call__(self, **kwargs):
-        """Initialize state data once."""
-        for item, value in kwargs.items():
-            if item not in self._state["data"]:
-                self._state["data"][item] = value
-
-    def __getitem__(self, item):
-        """Return a saved state value, None if item is undefined."""
-        return self._state["data"].get(item, None)
-
-    def __getattr__(self, item):
-        """Return a saved state value, None if item is undefined."""
-        return self._state["data"].get(item, None)
-
-    def __setitem__(self, item, value):
-        """Set state value."""
-        self._state["data"][item] = value
-
-    def __setattr__(self, item, value):
-        """Set state value."""
-        self._state["data"][item] = value
-
-    def clear(self):
-        """Clear session state and request a rerun."""
-        self._state["data"].clear()
-        self._state["session"].request_rerun()
-
-    def sync(self):
-        """Rerun the app with all state values up to date from the beginning to fix rollbacks."""
-
-        # Ensure to rerun only once to avoid infinite loops
-        # caused by a constantly changing state value at each run.
-        #
-        # Example: state.value += 1
-        if self._state["is_rerun"]:
-            self._state["is_rerun"] = False
-
-        elif self._state["hash"] is not None:
-            if self._state["hash"] != self._state["hasher"].to_bytes(self._state["data"], None):
-                self._state["is_rerun"] = True
-                self._state["session"].request_rerun()
-
-        self._state["hash"] = self._state["hasher"].to_bytes(self._state["data"], None)
-
-def _get_session():
-    session_id = get_report_ctx().session_id
-    session_info = Server.get_current()._get_session_info(session_id)
-
-    if session_info is None:
-        raise RuntimeError("Couldn't get your Streamlit Session object.")
-
-    return session_info.session
-
-def _get_state(hash_funcs=None):
-    session = _get_session()
-
-    if not hasattr(session, "_custom_session_state"):
-        session._custom_session_state = _SessionState(session, hash_funcs)
-
-    return session._custom_session_stat
-
-## My functions
-
-def autosave_session(state):
-   # The session file is saved in the path saved in the state key called state.session_autosave_file_abs, which is declared in the beginning of the script
-    with open(str(state.session_autosave_file_abs), 'wb') as outf:
-        pickle.dump(state._state['data'], outf)
-        
-def is_shutdown_line(shutdown_line):
-    return "Shutting down" in shutdown_line
-
-def get_last_n_lines_of_file(file, n):
-    with open(file, "r") as file:
-        lines = file.readlines()
-    return lines[-n:]
-
-def was_session_shutdown(state):
-    # If an unexpected shutdown happened and the session was restarted, the debug log 24th or 25th lines will have a shutdown message (at least in my case)
-    list_of_files = glob.glob(
-        configs['APP_BASE_DIR'] + '/logs/streamlit_logs/*')
-    state.streamlit_log = max(list_of_files, key=os.path.getmtime)
-    last_25_streamlit_log_lines = get_last_n_lines_of_file(state.streamlit_log, 25)
-    shutdown_session_line = last_25_streamlit_log_lines[0]
-    shutdown_session_line_after = last_25_streamlit_log_lines[1]
-    session_was_shutdown = is_shutdown_line(shutdown_session_line) or is_shutdown_line(shutdown_session_line_after)
-    return session_was_shutdown
-
-def load_autosaved_session(state, login=False):
-    try:
-            with open(str(state.session_autosave_file_abs), 'rb') as inf:
-                state._state['data'] = pickle.load(inf)
-                if not login:
-                    # logout user if security policy requires
-                    state.user = ''
-                    state.password = ''
-                    state.authenticated = False
-    except FileNotFoundError:  # someone deleted the sessions file
-        pass
-    
-# Implementation
-
-if __name__ == "__main__":
-    state = _get_state()
-    session_was_shutdown = was_session_shutdown(state)
-    state.session_autosave_file_abs = os.path.join(configs['APP_BASE_DIR'], configs['MODELS_DIR'], '') + str("\~session_auto_save.pickle")
-    if session_was_shutdown:  
-        load_autosaved_session(state)
 
 # Spreadsheet (database) Functions 
 @st.cache()
@@ -259,7 +58,7 @@ def update_the_spreadsheet(spreadsheetname,dataframe):
     
     ]
     spread.df_to_sheet(dataframe[col],sheet = spreadsheetname,index = False)
-
+    st.sidebar.info('Updated to GoogleSheet')
 
 from gsheetsdb import connect
 gsheet_url = "https://docs.google.com/spreadsheets/d/19xhszrZtww1Z-x3WeOSm2zW9D8TqqIAHWNzH8En9IY4/edit?usp=sharing"
@@ -271,14 +70,6 @@ def begin_connection():
     return
 
 begin_connection()
-
-
-if 'csv_filepath' not in st.session_state:
-    st.session_state['csv_filepath'] = "/Users/timothywee/Documents/SUTD Term 5/HCI and AI/Week 10/Smart Pomodoro/HCI-and-AI-smart-pomodoro/optidoro-production copy/actual_HCI_data.csv"
-#     st.session_state['csv_filepath'] = "actual_HCI_data.csv"
-
-#CHANGE THIS TO LOCAL FILEPATH
-# local_CSV_filepath = st.session_state['csv_filepath']
 
 if 'disable_begin' not in st.session_state:
     st.session_state['disable_begin'] = False
@@ -350,25 +141,13 @@ if 'form_on' not in st.session_state:
     st.session_state.form_on = False
 
 if 'dev_mode' not in st.session_state:
-    st.session_state.dev_mode = False
+    st.session_state.dev_mode = True
 
 if 'cycle_counter' not in st.session_state: 
     st.session_state['cycle_counter'] = 0
 
-# if 'break_counter' not in st.session_state: 
-#     st.session_state['break_counter'] = 0
-
-# if 'subject_array' not in st.session_state:
-#     st.session_state['subject_array'] = subject_array = ["Machine Learning", "HCI and AI", "Service Design Studio", "HASS"]
-
 if 'multiplier' not in st.session_state:
     st.session_state['multiplier'] = 1 #change this to 1 in deployment
-
-# if 'suggested_cycle_value' not in st.session_state:
-#     st.session_state['suggested_cycle_value'] = 25
-
-# if 'suggested_break_value' not in st.session_state:
-#     st.session_state['suggested_break_value'] = 5
 
 if 'daily_focus_score' not in st.session_state:
     st.session_state['daily_focus_score'] = 0
@@ -379,51 +158,7 @@ if 'daily_effort_score' not in st.session_state:
 if 'extend_counter' not in st.session_state:
     st.session_state['extend_counter'] = 0
 
-# if 'autopilot_work' not in st.session_state:
-#     st.session_state['autopilot_work'] = False
-
-# st.write(st.session_state)
-
-def get_keys():
-    keys = []
-    for key in st.session_state:
-        keys.append(key)
-    return keys
-
-# st.write(get_keys())
-
-# df = pd.read_csv(local_CSV_filepath) 
-
-# graph_df = df[['subject', 'time_minutes']]
-# # graph_df['time_now'] = pd.to_datetime(graph_df['time_now'])
-
-# #st.line_chart(graph_df)
-
-# st.write(st.session_state)
-
 def combined_count_down(ts):
-    
-    # if st.button("CANCEL"): #fix later
-    #     st.session_state['break_minutes'] -= 5 #idk why this does not work
-    #     #ts = 0
-
-    # if st.button("EXTEND"):
-    #     st.session_state['break_minutes'] += 5
-    #     st.session_state['countdown_time'] += 1500  
-    #     ts += 1500  
-    
-    # with st.empty():
-        
-    #     while st.session_state['countdown_time']:
-    #         mins, secs = divmod(st.session_state['countdown_time'], 60)
-    #         time_now = '{:02d}:{:02d}'.format(mins, secs)
-    #         st.header(f"{time_now}")
-    #         time.sleep(float(st.session_state['multiplier']))
-    #         st.session_state['countdown_time'] -= 1
-    #time_minutes = int(ts/60) #save this somewhere
-
-    # if st.session_state['autopilot_work'] == True:
-    #     ts = 6000 - 60 * st.session_state['minutes_today']
 
     with st.empty():
         
@@ -434,21 +169,13 @@ def combined_count_down(ts):
             time.sleep(float(st.session_state['multiplier']))
             ts -= 1
             st.session_state['countdown_time'] -= 1
-
-        # if st.session_state['autopilot_work'] == True:
-        #     st.session_state['autopilot_work'] = False
-        #     st.session_state['minutes_today'] = 100
-        #     st.experimental_rerun()
         
         st.session_state.run_finished = True
 
-        #st.session_state['disable_begin'] = False
         st.success("Work cycle over! Time for a break!")
 
         #begin break counter
         
-        global form_on
-        form_on = True
         # st.session_state['minutes_today'] += 25
         st.session_state['cycle_counter'] += 1
         st.session_state.form_on = True
@@ -468,72 +195,28 @@ st.caption("Learning Faster & Greater")
 
 #st.line_chart(df)
 time_minutes = 25
-#time_minutes = st.number_input('Enter the study time in minutes ', min_value=0, max_value=50, value=st.session_state['suggested_cycle_value'])
 global break_time_minutes
 break_time_minutes = 5
-#break_time_minutes = st.number_input('Enter the break time in minutes ', min_value=0, max_value=50, value=st.session_state['suggested_break_value'])
-
-# global subject
-# subject = st.selectbox('Subject: ', st.session_state.subject_array)
-#st.write(st.session_state)
-
-# cancel_placeholder = st.empty()
-# with cancel_placeholder.container():
-#     if st.button("CANCEL"): #fix later
-#         st.session_state['break_minutes'] -= 5 #idk why this does not work
-#         #ts = 0
-
 
 # st.write(st.session_state)
 mins, secs = divmod(st.session_state['break_minutes'], 60)
 time_now = '{:02d}:{:02d}'.format(mins, secs)
 
-# time_now = '{:02d}:{:02d}'.format(divmod(st.session_state['break_minutes'], 60))
-#col1, col2 = st.columns(2)
-
 break_mins, break_secs = divmod(st.session_state['break_minutes'], 60)
 break_time_now = '{:02d}:{:02d}'.format(break_mins, break_secs)
 st.metric("Remaining break time", break_time_now)
 
-# with col1:
-#     break_mins, break_secs = divmod(st.session_state['break_sec'], 60)
-#     break_time_now = '{:02d}:{:02d}'.format(break_mins, break_secs)
-#     st.metric("Remaining break time", break_time_now)
-
-# with col2: 
-#     break_mins, break_secs = divmod(st.session_state['break_sec'], 60)
-#     break_time_now = '{:02d}:{:02d}'.format(break_mins, break_secs)
-#     st.metric("Remaining study time", time_now)
-
-
 if (st.button("Begin work cycle", on_click=begin_callback, disabled=st.session_state['disable_begin']) or st.session_state['extend']): #or st.session_state['autopilot_work']: #how to hide begin button when timer is running?
     if st.session_state['countdown_time'] != 0:
-        #st.session_state['disable_begin'] = True
         st.write("Work cycle in progress")
-    # st.metric("Upcoming break time", st.session_state['break_minutes'])
     
-    # if st.session_state['countdown_time'] == 0: #idk what this is, check again
-    #     st.session_state['countdown_time'] = time_minutes * 60
-    
-    
-
     if not st.session_state.run_finished:
         
-        
         if st.button("Extend your current cycle", help="Extends current work cycle by 25 minutes.", on_click=extend_callback):
-            #combined_count_down(st.session_state['countdown_time'])
             pass
 
-            # st.empty()
-            # # st.write(st.session_state['countdown_time'])
-            # # st.write(st.session_state['break_minutes'])
-            # combined_count_down(st.session_state['countdown_time'])
         if st.button("End current cycle", help="By clicking this button, you will end your current work cycle. Time spent on this cycle will not be counted.", on_click=cancel_callback): #fix 
             pass
-
-    
-    # if st.session_state['countdown_time'] == 0:
-    #     st.session_state['cancel_clicked'] = True
 
     if not st.session_state.cancel_clicked:
         st.session_state['extend'] = False
@@ -547,9 +230,6 @@ if st.session_state.cancel_clicked:
 
 if not st.session_state['disable_begin']:
     st.session_state['disable_begin'] = False
-
-
-    
 
 #st.write(df)
 
@@ -575,27 +255,13 @@ if st.session_state.form_on: #triggers when timer is up
                     'extend': st.session_state['extend'], 'time_minutes': st.session_state['time_minutes'], 
                     'begin_clicked': st.session_state['begin_clicked'], 'daily_focus_score': st.session_state['daily_focus_score'], 'daily_effort_score': st.session_state['daily_effort_score'],
                     'dev_mode': st.session_state['dev_mode']
-
-
                     }
             opt_df = pd.DataFrame(opt, index=[0])
             df = load_the_spreadsheet('data')
             new_df = df.append(opt_df, ignore_index=True)
             update_the_spreadsheet('data', new_df)
-            # df.loc[len(df)] = [str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")), subject, time_minutes, effort_score, focus_score]
-            
-            #private gsheets implementation
-            # now = datetime.now()
-            # opt = {'Timestamp': [now], 'Effort': [effort_score], 'Focus': [focus_score]}
-            # opt_df = pd.DataFrame(opt)
-            # df = load_the_spreadsheet('HCI and AI')
-            # new_df = df.append(opt_df, ignore_index=True)
-            # update_the_spreadsheet('HCI and AI', new_df)
 
-
-            # df.to_csv(local_CSV_filepath, index=False) 
             st.session_state.form_on = False
-            autosave_session(state)
             st.success('Your effort score and focus score have been recorded. Please wait while we start your break.')
             #st.write(df)
             
@@ -603,7 +269,6 @@ if st.session_state.form_on: #triggers when timer is up
             # st.experimental_rerun()
 
             st.header("Break time!")
-            st.header("Click 'Begin work cycle' when you are ready to start the next cycle.")
             # ts = break_time_minutes * 60
             ts = st.session_state['break_minutes']
             
@@ -616,14 +281,6 @@ if st.session_state.form_on: #triggers when timer is up
                     #st.session_state['']
                     ts -= 1
                     st.session_state['break_minutes'] -= 1
-
-                    # if st.session_state['break_minutes'] == 0:
-                    #     st.session_state['autopilot_work'] = True
-
-
-
-
-
             
             st.success("Break cycle over! ")
             time.sleep(2)
@@ -633,55 +290,18 @@ if st.session_state.form_on: #triggers when timer is up
 
 st.metric("Minutes today", st.session_state['minutes_today'])
 
-#st.metric("Pomodoro cycles today", st.session_state['cycle_counter'])
-# st.metric("Upcoming break time", st.session_state['break_minutes'])
-# if st.session_state['minutes_today'] >= 100: 
-#     st.write("You win chicken drumstick!")
-
-# if st.button("Tired scenario"):
-#     st.warning("You seem to be tired. Let the AI determine the best cycles for you.")
-#     time.sleep(4)
-#     st.session_state['suggested_cycle_value'] = 20
-#     st.session_state['suggested_break_value'] = 10
-#     st.experimental_rerun()
-
-# st.session_state.dev_mode = st.checkbox('dev mode')
-# st.caption("Makes timer run faster, displays CSV")
-# if st.session_state.dev_mode == True:
-#     st.session_state['multiplier'] = 0.001
-#     st.write(df)
-
-# if st.session_state.dev_mode == False:
-#     st.session_state['multiplier'] = 1
-
-st.session_state.dev_mode = st.checkbox('dev mode', value=False)
+dev_mode = st.checkbox('dev mode', value=st.session_state.dev_mode)
 st.caption("Makes timer run faster for testing purposes.")
 
-if st.session_state.dev_mode == True:
+if dev_mode == True:
+    st.session_state.dev_mode == True
     st.session_state['multiplier'] = 0.005
 
-if st.session_state.dev_mode == False:
+if dev_mode == False:
     st.session_state['multiplier'] = 1
-
-# dev_mode = st.checkbox('dev mode', value=st.session_state.dev_mode)
-# st.caption("Makes timer run faster for testing purposes.")
-
-# if dev_mode == True:
-#     st.session_state.dev_mode == True
-#     st.session_state['multiplier'] = 0.005
-#     #display CSV file
-#     # df = pd.read_csv(st.session_state.csv_filepath)
-#     # st.write(df)
-#     # st.write(st.experimental_user)    
-
-# if dev_mode == False:
-#     st.session_state['multiplier'] = 1
-#     st.session_state.dev_mode == False
+    st.session_state.dev_mode == False
 
 if st.session_state['minutes_today'] >= 100:
     st.write("You have completed the study! Congratulations! Submit your scores, and enjoy the remainder of your break!")
-    st.write("Complete the post-study survey here to finish the session:")
-    link = '[Here](https://forms.gle/dY5VJVyzKEVWMV1w9)'
+    link = "[Proceed to post-test survey] (https://forms.gle/dY5VJVyzKEVWMV1w9)"
     st.markdown(link, unsafe_allow_html=True)
-
-
