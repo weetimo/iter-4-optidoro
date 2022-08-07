@@ -267,7 +267,7 @@ if st.session_state.form_on: #triggers when timer is up
             time.sleep(2)
             # st.experimental_rerun()
 
-            st.header("Break time!")
+            st.header("Break time! Click on 'Begin work cycle' to start your next work cycle.")
             # ts = break_time_minutes * 60
             ts = st.session_state['break_minutes']
             
