@@ -61,7 +61,6 @@ def update_the_spreadsheet(spreadsheetname,dataframe):
     
 
 from gsheetsdb import connect
-gsheet_url = "https://docs.google.com/spreadsheets/d/19xhszrZtww1Z-x3WeOSm2zW9D8TqqIAHWNzH8En9IY4/edit?usp=sharing"
 
 @st.cache()
 def begin_connection():
