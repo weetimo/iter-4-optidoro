@@ -1,13 +1,9 @@
 import streamlit as st
-
 import time
 import pandas as pd
 from datetime import datetime
-# import numpy as np
-
 from gspread_pandas import Spread,Client
 from google.oauth2 import service_account
-
 import random
 
 if 'user' not in st.session_state:
@@ -44,9 +40,6 @@ def load_the_spreadsheet(spreadsheetname):
     worksheet = sh.worksheet(spreadsheetname)
     df = pd.DataFrame(worksheet.get_all_records())
     return df
-
-#get a list of all keys in st.session_state
-
 
 # Update to Sheet
 def update_the_spreadsheet(spreadsheetname,dataframe):
@@ -85,10 +78,7 @@ if 'extend' not in st.session_state:
 if 'session_type' not in st.session_state:
     st.session_state['session_type'] = 'Modified Pomodoro'
 
-# st.write(st.session_state)
-
 def begin_callback():
-    # st.session_state['break_minutes'] += 5
     st.session_state['countdown_time'] = time_minutes * 60
     st.session_state.run_finished = False
     st.session_state.cancel_clicked = False
@@ -102,12 +92,9 @@ if 'cancel_clicked' not in st.session_state:
     st.session_state['cancel_clicked'] = False
 
 def cancel_callback():
-    #st.session_state['break_minutes'] -= 5 + st.session_state['extend_counter'] * 5
     st.session_state.run_finished = True
     st.session_state.begin_clicked = False
     st.session_state.cancel_clicked = True 
-    #st.session_state['extend_counter'] = 0
-    #st.session_state['disable_begin'] = False
     st.session_state['minutes_today'] -= (25 * st.session_state['extend_counter'] + 25)
 
 
@@ -173,9 +160,6 @@ def combined_count_down(ts):
 
         st.success("Work cycle over! Time for a break!")
 
-        #begin break counter
-        
-        # st.session_state['minutes_today'] += 25
         st.session_state['cycle_counter'] += 1
         st.session_state.form_on = True
         st.experimental_rerun()
@@ -190,14 +174,11 @@ else:
 
 st.progress(progress_bar)
 st.caption("Learning Faster & Greater")
-#st.write(st.session_state)
 
-#st.line_chart(df)
 time_minutes = 25
 global break_time_minutes
 break_time_minutes = 5
 
-# st.write(st.session_state)
 mins, secs = divmod(st.session_state['break_minutes'], 60)
 time_now = '{:02d}:{:02d}'.format(mins, secs)
 
@@ -219,7 +200,6 @@ if (st.button("Begin work cycle", on_click=begin_callback, disabled=st.session_s
 
     if not st.session_state.cancel_clicked:
         st.session_state['extend'] = False
-        #st.session_state['disable_begin'] = True
         combined_count_down(st.session_state['countdown_time'])
         
 
@@ -262,13 +242,10 @@ if st.session_state.form_on: #triggers when timer is up
 
             st.session_state.form_on = False
             st.success('Your effort score and focus score have been recorded. Please wait while we start your break.')
-            #st.write(df)
             
             time.sleep(2)
-            # st.experimental_rerun()
 
             st.header("Break time! Click on 'Begin work cycle' to start your next work cycle.")
-            # ts = break_time_minutes * 60
             ts = st.session_state['break_minutes']
             
             with st.empty():
@@ -277,15 +254,12 @@ if st.session_state.form_on: #triggers when timer is up
                     time_now = '{:02d}:{:02d}'.format(mins, secs)
                     st.header(f"{time_now}")
                     time.sleep(float(st.session_state['multiplier']))
-                    #st.session_state['']
                     ts -= 1
                     st.session_state['break_minutes'] -= 1
             
             st.success("Break cycle over! ")
             time.sleep(2)
             st.experimental_rerun()
-
-#create a dataframe called graph_df from df, with only the timestamp, subject, and minutes_today columns
 
 st.metric("Minutes today", st.session_state['minutes_today'])
 
